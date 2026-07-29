@@ -10,21 +10,21 @@ from pathlib import Path
 
 # -------------------- API SETUP --------------------
 # Force load_dotenv to look in the exact directory where classification.py is saved
+# -------------------- API SETUP --------------------
+# 1. Try fetching key from Streamlit Cloud Secrets, fallback to local .env
+api_key = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
 
-env_path = Path(__file__).parent / ".env"
-load_dotenv(dotenv_path=env_path)
-
-st.write("Looking for .env at:", env_path)
-st.write("File exists?:", env_path.exists())
-
-api_key = os.getenv("GROQ_API_KEY")
+# 2. If running locally and .env hasn't loaded yet, try loading it
+if not api_key:
+    env_path = Path(__file__).parent / ".env"
+    load_dotenv(dotenv_path=env_path)
+    api_key = os.getenv("GROQ_API_KEY")
 
 if not api_key:
-    st.error("GROQ_API_KEY not found in .env file")
+    st.error("GROQ_API_KEY not found! Please set it in Streamlit Secrets or .env file.")
     st.stop()
 
-st.write("API Key loaded successfully!")
-client = Groq(api_key=api_key)    
+client = Groq(api_key=api_key) 
 
 # Print active Groq models to terminal on app start
 active_models = [m.id for m in client.models.list().data]
